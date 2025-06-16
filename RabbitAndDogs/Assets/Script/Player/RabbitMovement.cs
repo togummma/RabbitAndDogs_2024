@@ -67,6 +67,14 @@ public class RabbitMovement : MonoBehaviour
         {
             Stop();
         }
+        if (newState == GameStateManager.GameState.GameClear)
+        {
+            animator.Play("Clear");
+        }
+        if (newState == GameStateManager.GameState.GameOver)
+        {
+            animator.Play("Death");
+        }
     }
 
     private void Update()
