@@ -14,7 +14,7 @@ public class StageSelectUI : MonoBehaviour
 
     private Button firstSelectableButton;                 // 最初に選択されるボタン
 
-    private void Awake()
+    private async void Awake()
     {
         Debug.Log("StageSelectUI Awake - 開始");
 
@@ -31,7 +31,7 @@ public class StageSelectUI : MonoBehaviour
         }
 
         // ステージリスト表示
-        DisplayStageList();
+        await DisplayStageList();
 
         // デフォルト選択を設定
         if (firstSelectableButton != null)
@@ -40,29 +40,15 @@ public class StageSelectUI : MonoBehaviour
         }
     }
 
-    private void DisplayStageList()
+    private async System.Threading.Tasks.Task DisplayStageList()
     {
         Debug.Log("DisplayStageList - スタート");
+        
+        // GateDataのインスタンスをロード
+        StageCollection data = await UserStageDataHandler.LoadData();
 
-        string[] stageOrder = UserStageDataHandler.LoadStageOrder();
-        if (stageOrder == null || stageOrder.Length == 0)
-        {
-            Debug.LogError("ステージ順序のロードに失敗しました！");
-            return;
-        }
-
-        GameData data = UserStageDataHandler.LoadData();
-        if (data == null)
-        {
-            Debug.LogError("保存データがロードできません！ 初期化します。");
-            UserStageDataHandler.InitializeData();
-            data = UserStageDataHandler.LoadData();
-            if (data == null)
-            {
-                Debug.LogError("データ初期化に失敗しました！");
-                return;
-            }
-        }
+        //GameDataから順序を取得
+        string[] stageOrder = data.GetStageOrder();
 
         Button previousButton = null; // ナビゲーション用の前のボタン
 
@@ -84,7 +70,7 @@ public class StageSelectUI : MonoBehaviour
                 buttonText.text = stageName;
             }
 
-            if (!stageInfo.isUnlocked)
+            if (!stageInfo.IsUnlocked)
             {
                 stageButton.interactable = false;
                 if (buttonText != null)
@@ -97,9 +83,9 @@ public class StageSelectUI : MonoBehaviour
             {
                 if (buttonText != null)
                 {
-                    if (stageInfo.bestTime > 0)
+                    if (stageInfo.BestTime > 0)
                     {
-                        buttonText.text += $" (ベストタイム: {FormatTime(stageInfo.bestTime)})";
+                        buttonText.text += $" (ベストタイム: {FormatTime(stageInfo.BestTime)})";
                     }
                     else
                     {

@@ -1,3 +1,5 @@
+using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -5,16 +7,15 @@ using UnityEngine.UI;
 
 public class TitleSceneUI : MonoBehaviour
 {
-    [SerializeField] private Button mainButton;          // スタート/続きから兼用ボタン
-    [SerializeField] private Button exitButton;          // 終了ボタン
-    [SerializeField] private Button stageSelectButton;   // ステージ選択ボタン
-    [SerializeField] private Button settingsButton;      // 設定ボタン
-    [SerializeField] private AudioClip BGM;              // タイトルBGM
-    [SerializeField] private AudioClip ClickSE;          // ボタンクリックSE
-    [SerializeField] private AudioClip SelectSE;         // ボタン選択SE
+    [SerializeField] private Button mainButton;        
+    [SerializeField] private Button exitButton;        
+    [SerializeField] private Button stageSelectButton; 
+    [SerializeField] private Button settingsButton;    
+    [SerializeField] private AudioClip BGM;            
+    [SerializeField] private AudioClip ClickSE;        
+    [SerializeField] private AudioClip SelectSE;       
 
-    private bool hasSaveData;                            // セーブデータがあるかどうか
-    private SettingsUIManager settingsUIManager = new SettingsUIManager();         // 設定UIマネージャ
+    private SettingsUIManager settingsUIManager = new SettingsUIManager();
 
     private void Start()
     {
@@ -22,96 +23,74 @@ public class TitleSceneUI : MonoBehaviour
 
         // タイトル画面BGM再生
         if (BGM != null)
-        {
             AudioManager.Instance.PlayBGM(BGM);
-        }
 
-        // セーブデータの有無を確認
-        hasSaveData = CheckSaveData();
+        // ボタンが Inspector でセットされているか確認
+        if (mainButton    != null) mainButton.onClick.AddListener(OnMainButtonClicked);
+        if (stageSelectButton != null) stageSelectButton.onClick.AddListener(OnStageSelectButtonClicked);
+        if (settingsButton != null) settingsButton.onClick.AddListener(OnSettingsButtonClicked);
+        if (exitButton    != null) exitButton.onClick.AddListener(OnExitButtonClicked);
 
-        // ボタンの初期設定
-        mainButton.onClick.AddListener(OnMainButtonClicked);
-        stageSelectButton.onClick.AddListener(OnStageSelectButtonClicked);
-        settingsButton.onClick.AddListener(OnSettingsButtonClicked);
-        exitButton.onClick.AddListener(OnExitButtonClicked);
-
-        // ボタンにハイライト時の効果音を追加
-        AddHighlightSound(mainButton);
-        AddHighlightSound(stageSelectButton);
-        AddHighlightSound(settingsButton);
-        AddHighlightSound(exitButton);
-
-        Debug.Log(hasSaveData ? "MainButton: Continue Mode" : "MainButton: Start Mode");
-    }
-
-    // セーブデータの有無を確認
-    private bool CheckSaveData()
-    {
-        string savePath = Application.persistentDataPath + "/gamedata.json";
-        return System.IO.File.Exists(savePath); // セーブデータが存在するか確認
+        // ハイライト効果音
+        if (mainButton    != null) AddHighlightSound(mainButton);
+        if (stageSelectButton != null) AddHighlightSound(stageSelectButton);
+        if (settingsButton != null) AddHighlightSound(settingsButton);
+        if (exitButton    != null) AddHighlightSound(exitButton);
     }
 
     // メインボタン（スタート/続きから）クリック処理
-    private void OnMainButtonClicked()
+    private async void OnMainButtonClicked()
     {
         if (ClickSE != null)
-        {
             AudioManager.Instance.PlaySE(ClickSE);
+
+        Debug.Log("Continue Button Clicked!");
+
+        // ① 非同期でデータロード（内部で初期化も行われる）
+        StageCollection data = await UserStageDataHandler.LoadData();
+        if (data == null)
+        {
+            Debug.LogError("ステージデータのロードに失敗しました！");
+            return;
         }
 
-        if (hasSaveData)
-        {
-            Debug.Log("Continue Button Clicked!");
-            string lastScene = LoadLastScene(); // 最後にプレイしたシーンをロード
-            SceneManager.LoadScene(lastScene);
-        }
-        else
-        {
-            Debug.Log("Start Button Clicked!");
-            SceneManager.LoadScene("Test1"); // 初期シーンに遷移
-        }
+        // ② 次に遊ぶステージ名を取得
+        //    LoadDataAsync 内で初期化済みなので、data.GetNextStage だけで済む
+        string nextStage = data.GetNextStage(SceneManager.GetActiveScene().name);
+
+        // ③ フォールバック：次ステージがない場合は最初のステージへ
+        if (string.IsNullOrEmpty(nextStage))
+            nextStage = "Test1";
+
+        Debug.Log($"シーン遷移: {nextStage}");
+        SceneManager.LoadScene(nextStage);
     }
 
     // ステージ選択画面へ移動
     private void OnStageSelectButtonClicked()
     {
         if (ClickSE != null)
-        {
             AudioManager.Instance.PlaySE(ClickSE);
-        }
 
         Debug.Log("Stage Select Button Clicked!");
-        SceneManager.LoadScene("StageSelectScene"); // ステージ選択シーン名を指定
+        SceneManager.LoadScene("StageSelectScene");
     }
 
-    // 最後にプレイしたシーン名を取得
-    private string LoadLastScene()
+    // 設定画面を開く
+    private void OnSettingsButtonClicked()
     {
-        string savePath = Application.persistentDataPath + "/gamedata.json";
-        if (System.IO.File.Exists(savePath))
-        {
-            string json = System.IO.File.ReadAllText(savePath);
-            GameData data = JsonUtility.FromJson<GameData>(json);
+        if (ClickSE != null)
+            AudioManager.Instance.PlaySE(ClickSE);
 
-            // 最後にクリア済みのシーンを探す
-            foreach (var stage in data.stages)
-            {
-                if (!stage.isUnlocked)
-                {
-                    return stage.sceneName; // ロックされる前のシーンを返す
-                }
-            }
-        }
-        return "Test1"; // データがなければ最初のステージへ
+        Debug.Log("Settings Button Clicked!");
+        settingsUIManager.OpenSettings(this.gameObject);
     }
 
     // ゲーム終了処理
     private void OnExitButtonClicked()
     {
         if (ClickSE != null)
-        {
             AudioManager.Instance.PlaySE(ClickSE);
-        }
 
         Debug.Log("Exit Button Clicked!");
         #if UNITY_EDITOR
@@ -121,36 +100,19 @@ public class TitleSceneUI : MonoBehaviour
         #endif
     }
 
-    // 設定画面を開く
-    private void OnSettingsButtonClicked()
-    {
-        if (ClickSE != null)
-        {
-            AudioManager.Instance.PlaySE(ClickSE);
-        }
-
-        Debug.Log("Settings Button Clicked!");
-
-        settingsUIManager.OpenSettings(this.gameObject); // 呼び出し元のUIを渡す
-    }
-
     // ボタンにハイライト時の効果音を追加
     private void AddHighlightSound(Button button)
     {
-        EventTrigger trigger = button.gameObject.AddComponent<EventTrigger>();
-
-        EventTrigger.Entry entry = new EventTrigger.Entry
+        var trigger = button.gameObject.AddComponent<EventTrigger>();
+        var entry = new EventTrigger.Entry
         {
             eventID = EventTriggerType.PointerEnter
         };
         entry.callback.AddListener((_) =>
         {
             if (SelectSE != null)
-            {
                 AudioManager.Instance.PlaySE(SelectSE);
-            }
         });
-
         trigger.triggers.Add(entry);
     }
 }

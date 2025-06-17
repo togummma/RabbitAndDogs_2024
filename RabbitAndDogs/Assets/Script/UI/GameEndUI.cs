@@ -98,7 +98,7 @@ public class GameEndUI : MonoBehaviour
     {
         if (gameDataManager != null)
         {
-            string nextStage = gameDataManager.GetNextUnlockedStage();
+            string nextStage = gameDataManager.nextStageName;
             if (!string.IsNullOrEmpty(nextStage))
             {
                 SceneManager.LoadScene(nextStage);

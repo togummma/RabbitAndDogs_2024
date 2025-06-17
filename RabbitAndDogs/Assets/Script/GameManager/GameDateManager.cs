@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,13 +10,24 @@ public class GameDataManager : MonoBehaviour
 
     private int currentStageIndex;      // 現在のステージインデックス
 
+    public string nextStageName; // 次のステージ名
+
     private void Start()
     {
         // ゲーム状態変更イベントの購読
         GameStateManager.Instance.OnGameStateChanged += HandleGameStateChanged;
 
+        // 非同期初期化処理を呼び出す
+        _ = InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        //GameDataのインスタンスをロード
+        StageCollection Data = await UserStageDataHandler.LoadData();
+
         // 現在のステージインデックスを取得
-        string[] stageOrder = UserStageDataHandler.LoadStageOrder();
+        string[] stageOrder = Data.GetStageOrder();
         if (stageOrder == null || stageOrder.Length == 0)
         {
             Debug.LogError("ステージ順序のロードに失敗しました！");
@@ -57,43 +69,23 @@ public class GameDataManager : MonoBehaviour
 
     private async void SaveGameData()
     {
-        GameData data = await UserStageDataHandler.LoadDataAsync();
-        if (data == null)
-        {
-            UserStageDataHandler.InitializeData();
-            data = await UserStageDataHandler.LoadDataAsync();
-            if (data == null)
-            {
-                Debug.LogError("データ初期化に失敗しました！");
-                return;
-            }
-        }
+        // dataのインスタンスをロード
+        StageCollection data = await UserStageDataHandler.LoadData();
 
+        // 現在のステージ情報を取得
         var stageInfo = data?.GetStageInfo(SceneManager.GetActiveScene().name);
-        if (stageInfo == null)
-        {
-            Debug.LogError($"現在のステージデータが見つかりません: {SceneManager.GetActiveScene().name}");
-            return;
-        }
 
-        // ベストタイム更新
-        if (elapsedTime < stageInfo.bestTime || stageInfo.bestTime == 0)
-        {
-            stageInfo.bestTime = elapsedTime;
-        }
+        // ステージクリア時の処理
+        data.CompleteStage(stageInfo.StageName, elapsedTime);
 
-        string[] stageOrder = UserStageDataHandler.LoadStageOrder();
-        if (currentStageIndex + 1 < stageOrder.Length)
-        {
-            var nextStageInfo = data.GetStageInfo(stageOrder[currentStageIndex + 1]);
-            if (nextStageInfo != null)
-            {
-                nextStageInfo.isUnlocked = true;
-            }
-        }
+        // 次のアンロック済みステージを取得
+        nextStageName = data.GetNextStage(stageInfo.StageName);
 
-        await UserStageDataHandler.SaveDataAsync(data);
-        Debug.Log($"ステージ {stageInfo.sceneName} のデータを保存しました。タイム: {elapsedTime}");
+        // データを保存
+        await UserStageDataHandler.SaveData(data);
+
+        // debugログ出力
+        Debug.Log($"ステージ {stageInfo.StageName} のデータを保存しました。タイム: {elapsedTime}");
     }
 
     public float GetElapsedTime()
@@ -101,17 +93,4 @@ public class GameDataManager : MonoBehaviour
         return elapsedTime;
     }
 
-    public string GetNextUnlockedStage()
-    {
-        string[] stageOrder = UserStageDataHandler.LoadStageOrder();
-        if (currentStageIndex + 1 < stageOrder.Length)
-        {
-            var nextStageInfo = UserStageDataHandler.LoadData()?.GetStageInfo(stageOrder[currentStageIndex + 1]);
-            if (nextStageInfo != null && nextStageInfo.isUnlocked)
-            {
-                return nextStageInfo.sceneName;
-            }
-        }
-        return null;
-    }
 }

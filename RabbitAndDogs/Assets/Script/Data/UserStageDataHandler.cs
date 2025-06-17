@@ -42,24 +42,49 @@ public class UserStageDataHandler
         return Path.Combine(folderPath, "gamedata.json");
     }
 
+
+    // データの初期化
+    private static async Task InitializeData()
+    {
+        Debug.Log("保存データの初期化開始");
+
+        string[] stageNames = StageOrder.Stages; // ステージの順序を取得
+        if (stageNames.Length == 0)
+        {
+            Debug.LogError("ステージ順序が空です。初期化できません！");
+            return;
+        }
+
+        StageCollection newData = new StageCollection(stageNames);
+
+        if (newData.Stages.Length > 0)
+        {
+            // 最初のステージをアンロック
+            newData.Stages[0].Unlock();
+            Debug.Log($"最初のステージ {newData.Stages[0].StageName} をアンロックしました");
+        }
+        else
+        {
+            Debug.LogWarning("ステージデータが空です。初期化できません！");
+            return;
+        }
+
+        // データを非同期で保存
+        await SaveData(newData);
+
+        Debug.Log("保存データの初期化完了");
+    }
+
     // 保存先の切り替え
-    public static void SetSaveLocation(bool saveInProject)
+    private static void SetSaveLocation(bool saveInProject)
     {
         saveToProjectFolder = saveInProject;
         savePath = GetSavePath(); // 保存先を再設定
         Debug.Log($"保存パスが変更されました: {savePath}");
     }
 
-    // データを保存
-    public static void SaveData(GameData data)
-    {
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(savePath, json);
-        Debug.Log($"保存データを保存しました: {json}");
-    }
-
     // データを非同期で保存
-    public static async Task SaveDataAsync(GameData data)
+    public static async Task SaveData(StageCollection data)
     {
         string json = JsonUtility.ToJson(data, true);
         using (StreamWriter writer = new StreamWriter(savePath, false))
@@ -69,86 +94,43 @@ public class UserStageDataHandler
         Debug.Log($"保存データを保存しました: {json}");
     }
 
-    // データを読み込み
-    public static GameData LoadData()
+    // 非同期でデータを読み込む。存在しなければ初期化して再読み込み。
+    public static async Task<StageCollection> LoadData()
     {
-        if (File.Exists(savePath))
+        if (!File.Exists(savePath))
         {
-            string json = File.ReadAllText(savePath);
+            Debug.Log("保存データが存在しないため初期化します");
+            await InitializeData();              // 初期化は同期でもOK（短時間）
+            // あるいは、InitializeDataAsync を await しても可
+            // await InitializeDataAsync();
+        }
+
+        using (var reader = new StreamReader(savePath))
+        {
+            string json = await reader.ReadToEndAsync();
             Debug.Log($"保存データをロード: {json}");
-            return JsonUtility.FromJson<GameData>(json);
+            return JsonUtility.FromJson<StageCollection>(json);
         }
-
-        Debug.Log("保存データが存在しません！");
-        return null;
-    }
-
-    // データを非同期で読み込み
-    public static async Task<GameData> LoadDataAsync()
-    {
-        if (File.Exists(savePath))
-        {
-            using (StreamReader reader = new StreamReader(savePath))
-            {
-                string json = await reader.ReadToEndAsync();
-                Debug.Log($"保存データをロード: {json}");
-                return JsonUtility.FromJson<GameData>(json);
-            }
-        }
-
-        Debug.Log("保存データが存在しません！");
-        return null;
-    }
-
-    // ステージ順序を取得
-    public static string[] LoadStageOrder()
-    {
-        string[] stageOrder = StageOrder.Stages;
-        Debug.Log($"ステージ順序ロード: {string.Join(", ", stageOrder)}");
-        return stageOrder;
     }
 
     // 次のアンロック済みステージを取得
-    public static string GetNextUnlockedStage()
+    public static async Task<string> GetNextUnlockedStage()
     {
-        GameData data = LoadData();
+        StageCollection data = await LoadData();
         if (data == null) return null;
 
         string currentSceneName = SceneManager.GetActiveScene().name;
 
-        for (int i = 0; i < data.stages.Length; i++)
+        for (int i = 0; i < data.Stages.Length; i++)
         {
-            if (data.stages[i].sceneName == currentSceneName && i + 1 < data.stages.Length)
+            if (data.Stages[i].StageName == currentSceneName && i + 1 < data.Stages.Length)
             {
-                if (data.stages[i + 1].isUnlocked)
+                if (data.Stages[i + 1].IsUnlocked)
                 {
-                    return data.stages[i + 1].sceneName;
+                    return data.Stages[i + 1].StageName;
                 }
             }
         }
         return null;
-    }
-
-    // データの初期化
-    public static void InitializeData()
-    {
-        Debug.Log("保存データの初期化開始");
-
-        string[] stageNames = LoadStageOrder();
-        if (stageNames.Length == 0)
-        {
-            Debug.LogError("ステージ順序が空です。初期化できません！");
-            return;
-        }
-
-        GameData newData = new GameData(stageNames);
-
-        if (newData.stages.Length > 0)
-        {
-            newData.stages[0].isUnlocked = true;
-        }
-
-        SaveData(newData);
-        Debug.Log("保存データの初期化完了");
     }
 }
