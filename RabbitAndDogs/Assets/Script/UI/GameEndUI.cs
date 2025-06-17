@@ -7,7 +7,9 @@ using UnityEngine.EventSystems;
 public class GameEndUI : MonoBehaviour
 {
     [SerializeField] private GameObject gameEndPanel; // 共通UIパネル
-    [SerializeField] private TMP_Text titleText;          // タイトル表示用テキスト
+    [SerializeField] private Image image;        // 画像
+    [SerializeField] private Sprite gameOverSprite; // ゲームオーバー時の画像
+    [SerializeField] private Sprite gameClearSprite; // ゲームクリア時の
 
     [SerializeField] private Button retryButton;      // リトライボタン
     [SerializeField] private Button nextStageButton;  // 次のステージボタン
@@ -53,21 +55,25 @@ public class GameEndUI : MonoBehaviour
     {
         if (newState == GameStateManager.GameState.GameOver)
         {
-            ShowGameEndUI("ゲームオーバー", false);
+            ShowGameEndUI(false);
         }
         else if (newState == GameStateManager.GameState.GameClear)
         {
-            ShowGameEndUI("ゲームクリア！", true);
+            ShowGameEndUI(true);
         }
     }
 
-    private void ShowGameEndUI(string title, bool isClear)
+    private void ShowGameEndUI(bool isClear)
     {
         gameEndPanel.SetActive(true);
         
         LayoutRebuilder.ForceRebuildLayoutImmediate(gameEndPanel.GetComponent<RectTransform>());
 
-        titleText.text = title;
+        // 画像の設定
+        if (image != null)
+        {
+            image.sprite = isClear ? gameClearSprite : gameOverSprite;
+        }
 
         // ボタンの表示切り替え
         nextStageButton.gameObject.SetActive(isClear);

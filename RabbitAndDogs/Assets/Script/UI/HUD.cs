@@ -40,7 +40,7 @@ public class HUD : MonoBehaviour
         if (goalItemLabel != null && GameStateManager.Instance != null)
         {
             int remainingGoalItems = GameStateManager.Instance.GetRemainingGoalItems();
-            goalItemLabel.text = "Rem: " + remainingGoalItems;
+            goalItemLabel.text = $"あと{remainingGoalItems} 本";
         }
     }
 }
