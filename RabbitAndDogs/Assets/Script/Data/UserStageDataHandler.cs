@@ -57,11 +57,11 @@ public class UserStageDataHandler
 
         StageCollection newData = new StageCollection(stageNames);
 
-        if (newData.Stages.Length > 0)
+        if (newData.StageInfos.Length > 0)
         {
             // 最初のステージをアンロック
-            newData.Stages[0].Unlock();
-            Debug.Log($"最初のステージ {newData.Stages[0].StageName} をアンロックしました");
+            newData.StageInfos[0].Unlock();
+            Debug.Log($"最初のステージ {newData.StageInfos[0].StageName} をアンロックしました");
         }
         else
         {
@@ -121,13 +121,13 @@ public class UserStageDataHandler
 
         string currentSceneName = SceneManager.GetActiveScene().name;
 
-        for (int i = 0; i < data.Stages.Length; i++)
+        for (int i = 0; i < data.StageInfos.Length; i++)
         {
-            if (data.Stages[i].StageName == currentSceneName && i + 1 < data.Stages.Length)
+            if (data.StageInfos[i].StageName == currentSceneName && i + 1 < data.StageInfos.Length)
             {
-                if (data.Stages[i + 1].IsUnlocked)
+                if (data.StageInfos[i + 1].IsUnlocked)
                 {
-                    return data.Stages[i + 1].StageName;
+                    return data.StageInfos[i + 1].StageName;
                 }
             }
         }

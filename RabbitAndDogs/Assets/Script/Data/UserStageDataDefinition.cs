@@ -34,28 +34,28 @@ public class Stage
 //ステージデータのリストの定義
 public class StageCollection
 {
-    public Stage[] Stages; // 複数ステージのデータ管理
-    private string[] stageOrder; // ステージの順序
+    public Stage[] StageInfos; // 複数ステージのデータ管理
+    public string[] StageNames; // ステージの順序
 
 
     // コンストラクタ
     public StageCollection(string[] stageNames)
     {
-        stageOrder = stageNames; // ステージの順序を設定
-        Stages = new Stage[stageNames.Length];
+        StageNames = stageNames; // ステージの順序を設定
+        StageInfos = new Stage[stageNames.Length];
         for (int i = 0; i < stageNames.Length; i++)
         {
-            Stages[i] = new Stage(stageNames[i]); // Scene名を設定
+            StageInfos[i] = new Stage(stageNames[i]); // Scene名を設定
         }
     }
 
     // ステージの順序を取得
-    public string[] GetStageOrder() => stageOrder;
+    public string[] GetStageOrder() => StageNames;
 
     // 指定したステージ名のデータを取得
     public Stage GetStageInfo(string stageName)
     {
-        foreach (var stage in Stages)
+        foreach (var stage in StageInfos)
         {
             if (stage.StageName == stageName)
             {
@@ -75,23 +75,35 @@ public class StageCollection
         stage.TryUpdateBestTime(clearTime);
 
         // 2)アンロック処理
-        int idx = Array.IndexOf(stageOrder, stageName);
-        if (idx >= 0 && idx + 1 < Stages.Length)
+        int idx = Array.IndexOf(StageNames, stageName);
+        if (idx >= 0 && idx + 1 < StageInfos.Length)
         {
-            GetStageInfo(stageOrder[idx + 1])?.Unlock();
+            GetStageInfo(StageNames[idx + 1])?.Unlock();
         }
     }
 
-    // 次のアンロック済みステージを取得
+    // 次ステージを取得
     public string GetNextStage(string stageName)
     {
-        int idx = Array.IndexOf(stageOrder, stageName);
-        if (idx < 0 || idx + 1 >= Stages.Length)
+        int idx = Array.IndexOf(StageNames, stageName);
+        if (idx < 0 || idx + 1 >= StageInfos.Length)
             return null;
 
-        var next = GetStageInfo(stageOrder[idx + 1]);
+        var next = GetStageInfo(StageNames[idx + 1]);
         return (next != null && next.IsUnlocked)
             ? next.StageName
             : null;
+    }
+
+    // 最後にアンロックされたステージを取得
+    public string GetLatestStage()
+    {
+        // 配列は stageOrder と同じ並びなので、Stages も同じインデックス対応
+        for (int i = StageInfos.Length - 1; i >= 0; i--)
+        {
+            if (StageInfos[i].IsUnlocked)
+                return StageInfos[i].StageName;
+        }
+        return null;
     }
 }

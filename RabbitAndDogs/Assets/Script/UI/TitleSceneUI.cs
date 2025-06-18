@@ -56,11 +56,7 @@ public class TitleSceneUI : MonoBehaviour
 
         // ② 次に遊ぶステージ名を取得
         //    LoadDataAsync 内で初期化済みなので、data.GetNextStage だけで済む
-        string nextStage = data.GetNextStage(SceneManager.GetActiveScene().name);
-
-        // ③ フォールバック：次ステージがない場合は最初のステージへ
-        if (string.IsNullOrEmpty(nextStage))
-            nextStage = "Test1";
+        string nextStage = data.GetLatestStage();
 
         Debug.Log($"シーン遷移: {nextStage}");
         SceneManager.LoadScene(nextStage);
