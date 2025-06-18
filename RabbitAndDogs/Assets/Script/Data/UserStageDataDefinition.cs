@@ -1,108 +1,151 @@
 using System;
+using UnityEngine;
 
 [Serializable]
-
-//それぞれのステージデータの定義
+// 各ステージのデータ本体を完全にカプセル化
 public class Stage
 {
-    public string StageName;   // Scene名
-    public bool IsUnlocked;   // アンロック状態
-    public float BestTime;    // ベストタイム
+    [SerializeField]
+    private string stageName;   // シーン名
+    [SerializeField]
+    private bool   isUnlocked;  // アンロック状態
+    [SerializeField]
+    private float  bestTime;    // ベストタイム
 
-    // コンストラクタ
+    // コンストラクタ：シーン名を受け取って初期化
     public Stage(string name)
     {
-        StageName = name;        // Scene名を設定
-        IsUnlocked = false;      // 初期状態はロック
-        BestTime = 0f;           // 初期タイムは0
+        stageName  = name;       // Scene名を設定
+        isUnlocked = false;      // 初期状態はロック
+        bestTime   = 0f;         // 初期タイムは0
     }
 
-    // このメソッドだけが bestTime を書き換える
+    // ステージ名を取得
+    public string GetName()
+    {
+        return stageName;
+    }
+
+    // アンロック状態を取得
+    public bool GetIsUnlocked()
+    {
+        return isUnlocked;
+    }
+
+    // ベストタイムを取得
+    public float GetBestTime()
+    {
+        return bestTime;
+    }
+
+    // ベストタイム更新（0 または 新記録なら上書き）
     public void TryUpdateBestTime(float time)
     {
-        if (BestTime == 0f || time < BestTime)
-            BestTime = time;
-    }
-
-    // アンロック状態を設定
-    public void Unlock() => IsUnlocked = true;
-
-
-}
-
-[Serializable]
-//ステージデータのリストの定義
-public class StageCollection
-{
-    public Stage[] StageInfos; // 複数ステージのデータ管理
-    public string[] StageNames; // ステージの順序
-
-
-    // コンストラクタ
-    public StageCollection(string[] stageNames)
-    {
-        StageNames = stageNames; // ステージの順序を設定
-        StageInfos = new Stage[stageNames.Length];
-        for (int i = 0; i < stageNames.Length; i++)
+        if (bestTime == 0f || time < bestTime)
         {
-            StageInfos[i] = new Stage(stageNames[i]); // Scene名を設定
+            bestTime = time;
         }
     }
 
-    // ステージの順序を取得
-    public string[] GetStageOrder() => StageNames;
+    // ステージをアンロックする
+    public void Unlock()
+    {
+        isUnlocked = true;
+    }
+}
+
+[Serializable]
+// ステージデータのリストの定義（完全カプセル化版）
+public class StageCollection
+{
+    [SerializeField]
+    private Stage[]  stageInfos;  // 各ステージのデータ本体
+    [SerializeField]
+    private string[] stageNames;  // ステージの順序リスト
+
+    // コンストラクタ：シーン名リストから内部データを生成
+    public StageCollection(string[] stageNames)
+    {
+        this.stageNames = stageNames;
+        stageInfos = new Stage[stageNames.Length];
+        for (int i = 0; i < stageNames.Length; i++)
+        {
+            stageInfos[i] = new Stage(stageNames[i]);
+        }
+    }
+
+    // ステージ順序を取得
+    public string[] GetStageOrder()
+    {
+        return stageNames;
+    }
 
     // 指定したステージ名のデータを取得
     public Stage GetStageInfo(string stageName)
     {
-        foreach (var stage in StageInfos)
+        foreach (var st in stageInfos)
         {
-            if (stage.StageName == stageName)
+            if (st.GetName() == stageName)
             {
-                return stage; // 一致するステージデータを返す
+                return st;  // 一致するステージデータを返す
             }
         }
-        return null; // 該当ステージが見つからない場合
+        return null;  // 該当ステージが見つからない場合
     }
 
-    // クリア処理
+    // 全ステージのデータを取得
+
+    public Stage[] GetStageInfos()
+    {
+        return stageInfos;
+    }
+
+    // クリア処理：ベストタイム更新＋次ステージをアンロック
     public void CompleteStage(string stageName, float clearTime)
     {
-        Stage stage = GetStageInfo(stageName);
-        if (stage == null) return; // ステージが見つからない場合は何もしない
+        var st = GetStageInfo(stageName);
+        if (st == null) return;
 
-        // 1)タイム更新処理
-        stage.TryUpdateBestTime(clearTime);
+        // ベストタイム更新
+        st.TryUpdateBestTime(clearTime);
 
-        // 2)アンロック処理
-        int idx = Array.IndexOf(StageNames, stageName);
-        if (idx >= 0 && idx + 1 < StageInfos.Length)
+        // 次のステージをアンロック
+        int idx = Array.IndexOf(stageNames, stageName);
+        if (idx >= 0 && idx + 1 < stageInfos.Length)
         {
-            GetStageInfo(StageNames[idx + 1])?.Unlock();
+            GetStageInfo(stageNames[idx + 1])?.Unlock();
         }
     }
 
-    // 次ステージを取得
+    // アンロック済みの次ステージ名を取得（未解放なら null）
     public string GetNextStage(string stageName)
     {
-        int idx = Array.IndexOf(StageNames, stageName);
-        if (idx < 0 || idx + 1 >= StageInfos.Length)
+        int idx = Array.IndexOf(stageNames, stageName);
+        if (idx < 0 || idx + 1 >= stageInfos.Length)
+        {
             return null;
+        }
 
-        var next = GetStageInfo(StageNames[idx + 1]);
-        return (next != null && next.IsUnlocked)
-            ? next.StageName
-            : null;
+        var next = GetStageInfo(stageNames[idx + 1]);
+        if (next != null && next.GetIsUnlocked())
+        {
+            return next.GetName();
+        }
+        else
+        {
+            return null;
+        }
     }
 
-    // 最後にアンロックされたステージを取得
+    // “つづきから” 用：最後にアンロックされたステージ名を取得
     public string GetLatestStage()
     {
-        // 配列は stageOrder と同じ並びなので、Stages も同じインデックス対応
-        for (int i = StageInfos.Length - 1; i >= 0; i--)
+        for (int i = stageInfos.Length - 1; i >= 0; i--)
         {
-            if (StageInfos[i].IsUnlocked)
-                return StageInfos[i].StageName;
+            if (stageInfos[i].GetIsUnlocked())
+            {
+                return stageInfos[i].GetName();
+            }
         }
         return null;
     }

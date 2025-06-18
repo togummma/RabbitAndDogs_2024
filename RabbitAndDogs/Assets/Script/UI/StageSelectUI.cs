@@ -70,7 +70,7 @@ public class StageSelectUI : MonoBehaviour
                 buttonText.text = stageName;
             }
 
-            if (!stageInfo.IsUnlocked)
+            if (!stageInfo.GetIsUnlocked())
             {
                 stageButton.interactable = false;
                 if (buttonText != null)
@@ -83,9 +83,9 @@ public class StageSelectUI : MonoBehaviour
             {
                 if (buttonText != null)
                 {
-                    if (stageInfo.BestTime > 0)
+                    if (stageInfo.GetBestTime() > 0)
                     {
-                        buttonText.text += $" (ベストタイム: {FormatTime(stageInfo.BestTime)})";
+                        buttonText.text += $" (ベストタイム: {FormatTime(stageInfo.GetBestTime())})";
                     }
                     else
                     {

@@ -76,16 +76,16 @@ public class GameDataManager : MonoBehaviour
         var stageInfo = data?.GetStageInfo(SceneManager.GetActiveScene().name);
 
         // ステージクリア時の処理
-        data.CompleteStage(stageInfo.StageName, elapsedTime);
+        data.CompleteStage(stageInfo.GetName(), elapsedTime);
 
         // 次のアンロック済みステージを取得
-        nextStageName = data.GetNextStage(stageInfo.StageName);
+        nextStageName = data.GetNextStage(stageInfo.GetName());
 
         // データを保存
         await UserStageDataHandler.SaveData(data);
 
         // debugログ出力
-        Debug.Log($"ステージ {stageInfo.StageName} のデータを保存しました。タイム: {elapsedTime}");
+        Debug.Log($"ステージ {stageInfo.GetName()} のデータを保存しました。タイム: {elapsedTime}");
     }
 
     public float GetElapsedTime()
