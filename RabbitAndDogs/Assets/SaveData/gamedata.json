@@ -8,16 +8,16 @@
         {
             "stageName": "Test2",
             "isUnlocked": true,
-            "bestTime": 0.0
+            "bestTime": 15.036911010742188
         },
         {
             "stageName": "Test3",
-            "isUnlocked": false,
-            "bestTime": 0.0
+            "isUnlocked": true,
+            "bestTime": 24.963993072509767
         },
         {
             "stageName": "Test1",
-            "isUnlocked": false,
+            "isUnlocked": true,
             "bestTime": 0.0
         }
     ],

@@ -45,7 +45,7 @@ public class StageSelectUI : MonoBehaviour
         Debug.Log("DisplayStageList - スタート");
         
         // GateDataのインスタンスをロード
-        StageCollection data = await UserStageDataHandler.LoadData();
+        StageCollection data = await StageDataHandler.LoadData();
 
         //GameDataから順序を取得
         string[] stageOrder = data.GetStageOrder();

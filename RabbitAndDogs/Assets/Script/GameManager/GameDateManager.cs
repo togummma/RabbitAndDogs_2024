@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -24,7 +25,7 @@ public class GameDataManager : MonoBehaviour
     private async Task InitializeAsync()
     {
         //GameDataのインスタンスをロード
-        StageCollection Data = await UserStageDataHandler.LoadData();
+        StageCollection Data = await StageDataHandler.LoadData();
 
         // 現在のステージインデックスを取得
         string[] stageOrder = Data.GetStageOrder();
@@ -70,7 +71,7 @@ public class GameDataManager : MonoBehaviour
     private async void SaveGameData()
     {
         // dataのインスタンスをロード
-        StageCollection data = await UserStageDataHandler.LoadData();
+        StageCollection data = await StageDataHandler.LoadData();
 
         // 現在のステージ情報を取得
         var stageInfo = data?.GetStageInfo(SceneManager.GetActiveScene().name);
@@ -82,7 +83,7 @@ public class GameDataManager : MonoBehaviour
         nextStageName = data.GetNextStage(stageInfo.GetName());
 
         // データを保存
-        await UserStageDataHandler.SaveData(data);
+        await StageDataHandler.SaveData(data);
 
         // debugログ出力
         Debug.Log($"ステージ {stageInfo.GetName()} のデータを保存しました。タイム: {elapsedTime}");

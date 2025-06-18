@@ -47,7 +47,7 @@ public class TitleSceneUI : MonoBehaviour
         Debug.Log("Continue Button Clicked!");
 
         // ① 非同期でデータロード（内部で初期化も行われる）
-        StageCollection data = await UserStageDataHandler.LoadData();
+        StageCollection data = await StageDataHandler.LoadData();
         if (data == null)
         {
             Debug.LogError("ステージデータのロードに失敗しました！");

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class UserStageDataHandler
+public class StageDataHandler
 {
     // 保存先を切り替えるためのフラグ
     private static bool saveToProjectFolder = true;
@@ -11,7 +11,7 @@ public class UserStageDataHandler
     private static string savePath;
 
     // コンストラクタで保存パスを初期化
-    static UserStageDataHandler()
+    static StageDataHandler()
     {
         savePath = GetSavePath();
         Debug.Log($"保存パス: {savePath}");
