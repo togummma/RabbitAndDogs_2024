@@ -221,6 +221,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   RabbitJumpClip: {fileID: 8300000, guid: 191a544543a89e74ca302edd83ebd451, type: 3}
+  landEffect: {fileID: 4841708204774922661, guid: 3f76f4be61ab32d499d60990fabd110b, type: 3}
 --- !u!95 &1009685770380600466
 Animator:
   serializedVersion: 5

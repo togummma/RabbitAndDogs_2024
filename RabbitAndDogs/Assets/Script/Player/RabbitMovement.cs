@@ -10,6 +10,8 @@ public class RabbitMovement : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;         // 接地判定用レイヤー
     [SerializeField] private AudioClip RabbitJumpClip;      // ジャンプ時のSE
 
+    [SerializeField]private ParticleSystem landEffect; // 着地エフェクト
+
     private Rigidbody rb;
     private Transform cameraTransform;  // 子オブジェクトのカメラ
 
@@ -129,7 +131,7 @@ public class RabbitMovement : MonoBehaviour
             //アニメーション再生
             animator.SetTrigger("Jump");
             //エフェクト再生
-            EffectManager.Instance.PlayEffect(transform.position);
+            EffectManager.Instance.PlayEffect(landEffect,transform.position);
 
         }
     }
@@ -168,9 +170,11 @@ public class RabbitMovement : MonoBehaviour
     {
         if (collision.contacts.Length > 0 && collision.contacts[0].normal.y > 0.5f)
         {
+            if (!isGrounded)
+            {
+            EffectManager.Instance.PlayEffect(landEffect,transform.position);
+            }
             isGrounded = true;
-            EffectManager.Instance.PlayEffect(transform.position);
-            Debug.Log("接地しました: " + collision.gameObject.name);
         }
 
         

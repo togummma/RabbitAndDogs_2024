@@ -1638,6 +1638,7 @@ GameObject:
   - component: {fileID: 1615571475468995775}
   - component: {fileID: 5085121621850362695}
   - component: {fileID: 964196987270054314}
+  - component: {fileID: 1803347438081539105}
   m_Layer: 5
   m_Name: GameEnd
   m_TagString: Untagged
@@ -1730,6 +1731,18 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!225 &1803347438081539105
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8488071363772479311}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &8550177613203604045
 GameObject:
   m_ObjectHideFlags: 0
@@ -2134,8 +2147,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f726e3b87a7a3df4994c305878057b8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameEndPanel: {fileID: 8488071363772479311}
-  image: {fileID: 2339350737160628109}
+  gameEndPanel: {fileID: 1803347438081539105}
+  titleImage: {fileID: 2339350737160628109}
   gameOverSprite: {fileID: 21300000, guid: 44a04161c8057e64a9b2c709f0cc5272, type: 3}
   gameClearSprite: {fileID: 21300000, guid: d1c32066d46c99b479d1c9deece149ed, type: 3}
   retryButton: {fileID: 6491646806456299354}

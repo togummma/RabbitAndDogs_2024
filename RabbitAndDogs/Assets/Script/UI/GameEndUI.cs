@@ -3,11 +3,12 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
+using DG.Tweening;
 
 public class GameEndUI : MonoBehaviour
 {
-    [SerializeField] private GameObject gameEndPanel; // 共通UIパネル
-    [SerializeField] private Image image;        // 画像
+    [SerializeField] private CanvasGroup gameEndPanel; // 共通UIパネル
+    [SerializeField] private Image titleImage;        // 画像
     [SerializeField] private Sprite gameOverSprite; // ゲームオーバー時の画像
     [SerializeField] private Sprite gameClearSprite; // ゲームクリア時の
 
@@ -34,7 +35,7 @@ public class GameEndUI : MonoBehaviour
         titleButton.onClick.AddListener(OnTitleButtonClicked);
 
         // 初期状態で非表示
-        gameEndPanel.SetActive(false);
+        gameEndPanel.gameObject.SetActive(false);
 
         // GameStateManagerのイベント登録
         if (GameStateManager.Instance != null)
@@ -69,33 +70,66 @@ public class GameEndUI : MonoBehaviour
     // isClearがtrueならゲームクリア、falseならゲームオーバーのUI
     private void ShowGameEndUI(bool isClear)
     {
-        gameEndPanel.SetActive(true);// UIパネルを表示
+        // 1) パネルを表示＆スプライト切り替え
+        gameEndPanel.gameObject.SetActive(true);
+        titleImage.sprite = isClear ? gameClearSprite : gameOverSprite;
 
-        LayoutRebuilder.ForceRebuildLayoutImmediate(gameEndPanel.GetComponent<RectTransform>());// レイアウトを強制的に再構築
+        // 2) ボタンを有効化＆初期スケール＝0（隠す）
+        var buttons = new[] { retryButton, nextStageButton, stageSelectButton, titleButton };
+        nextStageButton.gameObject.SetActive(isClear);
+        retryButton.gameObject.SetActive(true);
+        stageSelectButton.gameObject.SetActive(true);
+        titleButton.gameObject.SetActive(true);
+        foreach (var btn in buttons)
+            btn.transform.localScale = Vector3.zero;
 
-        // isClearに応じて画像を切り替え
-        if (image != null)
+        // 3) titleImage の初期スケール＝0
+        titleImage.transform.localScale = Vector3.zero;
+
+        // 4) レイアウト再構築
+        LayoutRebuilder.ForceRebuildLayoutImmediate(
+            gameEndPanel.GetComponent<RectTransform>());
+
+        // 5) アニメシーケンスを組み立て
+        var seq = DOTween.Sequence()
+            .SetUpdate(true)  // TimeScale=0 でも動かす
+            // パネルのフェード＋ポップアップ
+            .Append(gameEndPanel.DOFade(1f, 0.5f))
+            .Join(gameEndPanel.transform
+                .DOScale(1f, 0.5f)
+                .SetEase(Ease.OutBack))
+            // タイトル画像のポップ（0→1.3→1.0）
+            .Append(titleImage.transform
+                .DOScale(1.3f, 0.4f)
+                .SetEase(Ease.OutBack))
+            .Append(titleImage.transform
+                .DOScale(1f, 0.2f));
+
+        if (!isClear)
+    {
+        // ポップ演出の後、0.2秒待ってから傾ける
+        seq.AppendInterval(0.2f) 
+        .Append(titleImage.transform
+            .DOLocalRotate(new Vector3(0, 0, 7.5f), 0.30f) // 右に傾ける
+            .SetEase(Ease.InOutSine)); // タイトル画像を傾ける
+    }
+
+        // 7) 最後にボタン群を同時ポップ＆選択設定
+        seq.OnComplete(() =>
         {
-            image.sprite = isClear ? gameClearSprite : gameOverSprite;
-        }
+            foreach (var btn in buttons)
+                btn.transform
+                .DOScale(1f, 0.3f)
+                .SetEase(Ease.OutBack)
+                .SetUpdate(true);
 
-        nextStageButton.gameObject.SetActive(isClear);// isClearに応じてボタンの表示を切り替え
-        retryButton.gameObject.SetActive(true); // リトライボタンは常に表示
-        stageSelectButton.gameObject.SetActive(true); // ステージ選択ボタンは常に表示
-        titleButton.gameObject.SetActive(true); // タイトルボタンは常に表示
-
-        // isClearに応じてデフォルトボタンを設定
-        // ゲームクリアなら次のステージボタン、ゲームオーバー
-        Button defaultButton = isClear ? nextStageButton : retryButton;
-        // デフォルトボタンがアクティブな場合、選択状態にする
-        if (defaultButton != null && defaultButton.gameObject.activeSelf)
-        {
-            EventSystem.current.SetSelectedGameObject(defaultButton.gameObject);
-        }
+            var defaultBtn = isClear ? nextStageButton : retryButton;
+            EventSystem.current.SetSelectedGameObject(defaultBtn.gameObject);
+        });
     }
 
     // 各ボタンのクリックイベントハンドラ
-    
+
     private void OnRetryButtonClicked() // リトライボタンがクリックされたときの処理
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
