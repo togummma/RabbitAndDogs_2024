@@ -52,24 +52,30 @@ public class StageSelectUI : MonoBehaviour
 
         Button previousButton = null; // ナビゲーション用の前のボタン
 
-        foreach (var stageName in stageOrder)
+        // ステージリストの初期化
+        foreach (string stageName in stageOrder)
         {
             Debug.Log($"ステージ処理: {stageName}");
 
-            var stageInfo = data.GetStageInfo(stageName);
+            // ステージ情報を取得
+            Stage stageInfo = data.GetStageInfo(stageName);
             if (stageInfo == null)
             {
                 Debug.LogError($"ステージデータが見つかりません: {stageName}");
                 continue;
             }
 
+            // ステージボタンのインスタンス化
             Button stageButton = Instantiate(stageButtonPrefab, stageListContainer);
+
+            // ボタンの名前を設定
             TextMeshProUGUI buttonText = stageButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
                 buttonText.text = stageName;
             }
 
+            // ボタンのインタラクション設定
             if (!stageInfo.GetIsUnlocked())
             {
                 stageButton.interactable = false;
@@ -80,7 +86,8 @@ public class StageSelectUI : MonoBehaviour
                 Debug.Log($"ステージロック: {stageName}");
             }
             else
-            {
+            {   
+                // ボタンのインタラクションを有効化
                 if (buttonText != null)
                 {
                     if (stageInfo.GetBestTime() > 0)
@@ -93,6 +100,7 @@ public class StageSelectUI : MonoBehaviour
                     }
                 }
 
+                // ボタンのクリックイベントを設定
                 stageButton.onClick.AddListener(() =>
                 {
                     if (clickSE != null)
@@ -135,6 +143,7 @@ public class StageSelectUI : MonoBehaviour
         Debug.Log("DisplayStageList - 終了");
     }
 
+    // タイムをフォーマットするヘルパーメソッド
     private string FormatTime(float time)
     {
         int minutes = Mathf.FloorToInt(time / 60);

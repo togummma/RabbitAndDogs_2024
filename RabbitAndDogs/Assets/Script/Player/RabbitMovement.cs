@@ -128,6 +128,8 @@ public class RabbitMovement : MonoBehaviour
 
             //アニメーション再生
             animator.SetTrigger("Jump");
+            //エフェクト再生
+            EffectManager.Instance.PlayEffect(transform.position);
 
         }
     }
@@ -167,7 +169,11 @@ public class RabbitMovement : MonoBehaviour
         if (collision.contacts.Length > 0 && collision.contacts[0].normal.y > 0.5f)
         {
             isGrounded = true;
+            EffectManager.Instance.PlayEffect(transform.position);
+            Debug.Log("接地しました: " + collision.gameObject.name);
         }
+
+        
     }
 
 }

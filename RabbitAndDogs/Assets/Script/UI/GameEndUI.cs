@@ -43,6 +43,7 @@ public class GameEndUI : MonoBehaviour
         }
     }
 
+    // OnDestroyでイベントの購読を解除
     private void OnDestroy()
     {
         if (GameStateManager.Instance != null)
@@ -50,7 +51,8 @@ public class GameEndUI : MonoBehaviour
             GameStateManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
         }
     }
-
+    // ゲーム状態が変わったときの処理
+    //ゲームオーバーまたはゲームクリアの状態に応じてUIを表示
     private void HandleGameStateChanged(GameStateManager.GameState newState)
     {
         if (newState == GameStateManager.GameState.GameOver)
@@ -63,38 +65,43 @@ public class GameEndUI : MonoBehaviour
         }
     }
 
+    // ゲーム終了UIを表示するメソッド
+    // isClearがtrueならゲームクリア、falseならゲームオーバーのUI
     private void ShowGameEndUI(bool isClear)
     {
-        gameEndPanel.SetActive(true);
-        
-        LayoutRebuilder.ForceRebuildLayoutImmediate(gameEndPanel.GetComponent<RectTransform>());
+        gameEndPanel.SetActive(true);// UIパネルを表示
 
-        // 画像の設定
+        LayoutRebuilder.ForceRebuildLayoutImmediate(gameEndPanel.GetComponent<RectTransform>());// レイアウトを強制的に再構築
+
+        // isClearに応じて画像を切り替え
         if (image != null)
         {
             image.sprite = isClear ? gameClearSprite : gameOverSprite;
         }
 
-        // ボタンの表示切り替え
-        nextStageButton.gameObject.SetActive(isClear);
-        retryButton.gameObject.SetActive(true);
-        stageSelectButton.gameObject.SetActive(true);
-        titleButton.gameObject.SetActive(true);
+        nextStageButton.gameObject.SetActive(isClear);// isClearに応じてボタンの表示を切り替え
+        retryButton.gameObject.SetActive(true); // リトライボタンは常に表示
+        stageSelectButton.gameObject.SetActive(true); // ステージ選択ボタンは常に表示
+        titleButton.gameObject.SetActive(true); // タイトルボタンは常に表示
 
-        // 初期選択ボタンを設定
+        // isClearに応じてデフォルトボタンを設定
+        // ゲームクリアなら次のステージボタン、ゲームオーバー
         Button defaultButton = isClear ? nextStageButton : retryButton;
+        // デフォルトボタンがアクティブな場合、選択状態にする
         if (defaultButton != null && defaultButton.gameObject.activeSelf)
         {
             EventSystem.current.SetSelectedGameObject(defaultButton.gameObject);
         }
     }
 
-    private void OnRetryButtonClicked()
+    // 各ボタンのクリックイベントハンドラ
+    
+    private void OnRetryButtonClicked() // リトライボタンがクリックされたときの処理
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    private void OnNextStageButtonClicked()
+    private void OnNextStageButtonClicked() // 次のステージボタンがクリックされたときの処理
     {
         if (gameDataManager != null)
         {
@@ -111,12 +118,12 @@ public class GameEndUI : MonoBehaviour
         }
     }
 
-    private void OnStageSelectButtonClicked()
+    private void OnStageSelectButtonClicked() // ステージ選択ボタンがクリックされたときの処理
     {
         SceneManager.LoadScene("StageSelectScene");
     }
 
-    private void OnTitleButtonClicked()
+    private void OnTitleButtonClicked() // タイトルボタンがクリックされたときの処理
     {
         SceneManager.LoadScene("TitleScene");
     }
