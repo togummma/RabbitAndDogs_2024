@@ -40,7 +40,16 @@ public class TitleSceneUI : MonoBehaviour
         if (settingsButton != null) AddHighlightSound(settingsButton);
         if (exitButton != null) AddHighlightSound(exitButton);
 
-        /*アニメーション
+        IntroAnemation();
+
+        // 初期選択ボタンを設定
+        EventSystem.current.SetSelectedGameObject(mainButton.gameObject);
+    }
+
+    // タイトル画面の最初のアニメーション
+    void IntroAnemation()
+    { 
+        /*
         タイトル画像が0 → 1.4倍 → 元の大きさに変化
         ボタンは同時に0 → 元の大きさに変化
         */
@@ -77,11 +86,8 @@ public class TitleSceneUI : MonoBehaviour
                 settingsButton.transform.DOScale(settingsBtnScale, 0.3f).SetEase(Ease.OutBack);
                 exitButton.transform.DOScale(exitBtnScale, 0.3f).SetEase(Ease.OutBack);
 
-                // 初期選択ボタンを設定
-                EventSystem.current.SetSelectedGameObject(mainButton.gameObject);
+                
             });
-
-
     }
 
     // メインボタン（スタート/続きから）クリック処理

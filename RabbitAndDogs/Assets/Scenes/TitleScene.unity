@@ -4210,6 +4210,7 @@ GameObject:
   - component: {fileID: 1634363119497179567}
   - component: {fileID: 9008266085900971905}
   - component: {fileID: 9008266085900971906}
+  - component: {fileID: 9008266085900971907}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4269,6 +4270,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f8c75c7d8949bc4b9ec9bfb2a82660c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  titlePanel: {fileID: 9008266085900971907}
+  titleImage: {fileID: 759422006}
   mainButton: {fileID: 2803047520314756671}
   exitButton: {fileID: 7913323255923080434}
   stageSelectButton: {fileID: 6115620967210161076}
@@ -4276,6 +4279,18 @@ MonoBehaviour:
   BGM: {fileID: 8300000, guid: 074923b488dcf9e428c1f630cd19f14a, type: 3}
   ClickSE: {fileID: 8300000, guid: d7350d8cc2ae24d42a5186d8c033fcbb, type: 3}
   SelectSE: {fileID: 8300000, guid: de63844ead99b1b4b8899dfaa2bf6cfd, type: 3}
+--- !u!225 &9008266085900971907
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8403702431547397852}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
