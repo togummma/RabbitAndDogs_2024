@@ -8,6 +8,5 @@ public static class StageOrder
         "Stage1",
         "Test2",
         "Test3",
-        "Test1",
     };
 }

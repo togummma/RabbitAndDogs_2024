@@ -133,7 +133,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 912506389886375118, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_text
-      value: Game Exit
+      value: "\u3084\u3081\u308B"
       objectReference: {fileID: 0}
     - target: {fileID: 2143371424362731557, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_Pivot.x
@@ -516,7 +516,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 912506389886375118, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_text
-      value: Config
+      value: "\u8A2D\u5B9A"
       objectReference: {fileID: 0}
     - target: {fileID: 2143371424362731557, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_Pivot.x
@@ -2982,7 +2982,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 912506389886375118, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_text
-      value: Select Stage
+      value: "\u30B9\u30C6\u30FC\u30B8\u9078\u629E"
       objectReference: {fileID: 0}
     - target: {fileID: 2143371424362731557, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_Pivot.x
@@ -3550,7 +3550,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 912506389886375118, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_text
-      value: Start
+      value: "\u3064\u3065\u304D\u304B\u3089"
       objectReference: {fileID: 0}
     - target: {fileID: 2143371424362731557, guid: fef9aaac4b7344645add1948bb8b6cf6, type: 3}
       propertyPath: m_Pivot.x

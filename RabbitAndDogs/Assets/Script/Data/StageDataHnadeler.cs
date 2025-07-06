@@ -1,54 +1,50 @@
-using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class StageDataHandler
 {
-    // 保存先を切り替えるためのフラグ
-    private static bool saveToProjectFolder = true;
+    private const string SaveKey = "StageData";
 
-    private static string savePath;
-
-    // コンストラクタで保存パスを初期化
-    static StageDataHandler()
+    // 非同期で保存
+    public static async Task SaveData(StageCollection data)
     {
-        savePath = GetSavePath();
-        Debug.Log($"保存パス: {savePath}");
+        await Task.Yield(); // 疑似的な非同期にして async を維持
+        string json = JsonUtility.ToJson(data);
+        PlayerPrefs.SetString(SaveKey, json);
+        PlayerPrefs.Save();
+        Debug.Log($"保存データをPlayerPrefsに保存: {json}");
     }
 
-    // 保存先のパスを取得
-    private static string GetSavePath()
+    // 非同期で読み込み。存在しなければ初期化して再読み込み。
+    public static async Task<StageCollection> LoadData()
     {
-        string folderPath;
+        await Task.Yield(); // 疑似的な非同期処理
 
-        if (saveToProjectFolder)
+        if (!PlayerPrefs.HasKey(SaveKey))
         {
-            // プロジェクト内保存 (Assets/SaveData)
-            folderPath = Application.dataPath + "/SaveData/";
-        }
-        else
-        {
-            // ユーザーディレクトリ (persistentDataPath)
-            folderPath = Application.persistentDataPath + "/";
+            Debug.Log("保存データが存在しないため初期化します");
+            await InitializeData();
         }
 
-        // ディレクトリが存在しない場合は作成
-        if (!Directory.Exists(folderPath))
+        string json = PlayerPrefs.GetString(SaveKey, "");
+        if (string.IsNullOrEmpty(json))
         {
-            Directory.CreateDirectory(folderPath);
+            Debug.LogError("保存データの読み込みに失敗しました（空の文字列）");
+            return null;
         }
 
-        return Path.Combine(folderPath, "gamedata.json");
+        StageCollection data = JsonUtility.FromJson<StageCollection>(json);
+        Debug.Log($"保存データをロード: {json}");
+        return data;
     }
 
-
-    // データの初期化
+    // 初期データを保存（最初のステージをアンロック）
     private static async Task InitializeData()
     {
-        Debug.Log("保存データの初期化開始");
+        await Task.Yield(); // 擬似非同期
 
-        string[] stageNames = StageOrder.Stages; // ステージの順序を取得
+        string[] stageNames = StageOrder.Stages;
         if (stageNames.Length == 0)
         {
             Debug.LogError("ステージ順序が空です。初期化できません！");
@@ -56,61 +52,29 @@ public class StageDataHandler
         }
 
         StageCollection newData = new StageCollection(stageNames);
+        newData.GetStageInfos()[0].Unlock();
+        Debug.Log($"最初のステージ {newData.GetStageInfos()[0].GetName()} をアンロックしました");
 
-        if (newData.GetStageInfos().Length > 0)
-        {
-            // 最初のステージをアンロック
-            newData.GetStageInfos()[0].Unlock();
-            Debug.Log($"最初のステージ {newData.GetStageInfos()[0].GetName()} をアンロックしました");
-        }
-        else
-        {
-            Debug.LogWarning("ステージデータが空です。初期化できません！");
-            return;
-        }
-
-        // データを非同期で保存
         await SaveData(newData);
-
         Debug.Log("保存データの初期化完了");
     }
 
-    // 保存先の切り替え
-    private static void SetSaveLocation(bool saveInProject)
+    // 最新のアンロック済みステージを取得（タイトル画面用）
+    public static async Task<string> GetLatestStage()
     {
-        saveToProjectFolder = saveInProject;
-        savePath = GetSavePath(); // 保存先を再設定
-        Debug.Log($"保存パスが変更されました: {savePath}");
-    }
+        StageCollection data = await LoadData();
+        if (data == null) return null;
 
-    // データを非同期で保存
-    public static async Task SaveData(StageCollection data)
-    {
-        string json = JsonUtility.ToJson(data, true);
-        using (StreamWriter writer = new StreamWriter(savePath, false))
+        string lastUnlocked = null;
+        foreach (var info in data.GetStageInfos())
         {
-            await writer.WriteAsync(json);
-        }
-        Debug.Log($"保存データを保存しました: {json}");
-    }
-
-    // 非同期でデータを読み込む。存在しなければ初期化して再読み込み。
-    public static async Task<StageCollection> LoadData()
-    {
-        if (!File.Exists(savePath))
-        {
-            Debug.Log("保存データが存在しないため初期化します");
-            await InitializeData();              // 初期化は同期でもOK（短時間）
-            // あるいは、InitializeDataAsync を await しても可
-            // await InitializeDataAsync();
+            if (info.GetIsUnlocked())
+                lastUnlocked = info.GetName();
+            else
+                break;
         }
 
-        using (var reader = new StreamReader(savePath))
-        {
-            string json = await reader.ReadToEndAsync();
-            Debug.Log($"保存データをロード: {json}");
-            return JsonUtility.FromJson<StageCollection>(json);
-        }
+        return lastUnlocked;
     }
 
     // 次のアンロック済みステージを取得
@@ -120,17 +84,16 @@ public class StageDataHandler
         if (data == null) return null;
 
         string currentSceneName = SceneManager.GetActiveScene().name;
+        var stages = data.GetStageInfos();
 
-        for (int i = 0; i < data.GetStageInfos().Length; i++)
+        for (int i = 0; i < stages.Length - 1; i++)
         {
-            if (data.GetStageInfos()[i].GetName() == currentSceneName && i + 1 < data.GetStageInfos().Length)
+            if (stages[i].GetName() == currentSceneName && stages[i + 1].GetIsUnlocked())
             {
-                if (data.GetStageInfos()[i + 1].GetIsUnlocked())
-                {
-                    return data.GetStageInfos()[i + 1].GetName();
-                }
+                return stages[i + 1].GetName();
             }
         }
+
         return null;
     }
 }
